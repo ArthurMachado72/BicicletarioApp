@@ -65,14 +65,7 @@ public class AluguelService implements IAluguelService {
         var alugueis = aluguelRepository.findByClienteId(clienteId);
 
         BigDecimal total = alugueis.stream()
-                .map(a -> {
-                    long horas = Duration.between(
-                            a.getHoraInicio(),
-                            a.getHoraTermino() != null ? a.getHoraTermino() : LocalDateTime.now()
-                    ).toHours();
-
-                    return a.getPrecoHora().multiply(BigDecimal.valueOf(horas));
-                })
+                .map(this::calcularValorAluguel) // ← Usa o novo método
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return total.doubleValue();
@@ -88,5 +81,14 @@ public class AluguelService implements IAluguelService {
 
     public void excluirAluguel(Long aluguelId) {
         aluguelRepository.delete(aluguelId);
+    }
+
+    public BigDecimal calcularValorAluguel(Aluguel aluguel) {
+        long horas = Duration.between(
+                aluguel.getHoraInicio(),
+                aluguel.getHoraTermino() != null ? aluguel.getHoraTermino() : LocalDateTime.now()
+        ).toHours();
+
+        return aluguel.getPrecoHora().multiply(BigDecimal.valueOf(horas));
     }
 }
